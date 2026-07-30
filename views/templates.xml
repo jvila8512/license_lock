@@ -37,7 +37,7 @@
                                 Actualizá la licencia antes de que expire.
                             </div>
                         </t>
-                        <t t-if="days_remaining < 0">
+                        <t t-if="days_remaining &lt; 0">
                             <div style="font-size:3em;font-weight:bold;color:#c62828;line-height:1.1;">
                                 <t t-esc="0 - days_remaining"/>
                             </div>
