@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import time
+from datetime import date as Date
 
 from odoo import models
 from odoo.http import request
@@ -52,6 +53,12 @@ class IrHttp(models.AbstractModel):
         try:
             if request.session.uid:
                 lic = request.env['license.manager'].sudo()._get_singleton()
+
+                # Inline: si la licencia venció pero el status no se actualizó,
+                # forzar revalidación inmediata (no esperar al cron)
+                if lic.expires_on and lic.expires_on < Date.today() and lic.status == 'valid':
+                    lic._revalidate()
+
                 if lic.status != 'valid':
                     return request.redirect('/license_lock/blocked')
                 if not request.session.get('license_gate_seen'):
