@@ -1,0 +1,3 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_license_manager_user,license.manager.user,model_license_manager,base.group_user,1,1,1,0
+access_license_manager_system,license.manager.system,model_license_manager,base.group_system,1,1,1,1
