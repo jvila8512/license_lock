@@ -4,6 +4,8 @@ import time
 from odoo import models
 from odoo.http import request
 
+from . import license_manager  # _safemode_active, _master_key_valid, _is_bypassed
+
 # Rutas que SIEMPRE deben quedar accesibles, aunque el sistema esté bloqueado
 ALLOWED_PREFIXES = (
     '/web/login', '/web/session', '/web/database',
@@ -23,6 +25,10 @@ class IrHttp(models.AbstractModel):
     @classmethod
     def _dispatch(cls, endpoint):
         path = request.httprequest.path
+
+        # --- BYPASS: SAFEMODE o master key saltan toda verificación ---
+        if license_manager._is_bypassed():
+            return super()._dispatch(endpoint)
 
         # Rutas permitidas siempre pasan
         if path.startswith(ALLOWED_PREFIXES):

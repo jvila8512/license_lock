@@ -7,7 +7,7 @@ sin necesidad de internet ni servidor remoto.
 Formato del código:
     ODOO-<PLAN>-<AAAA-MM-DD>-<INSTANCEID>-<HASH>
 
-    PLAN        -> MENSUAL, TRIMESTRAL, SEMESTRAL, ANUAL
+    PLAN        -> DIARIO, MENSUAL, TRIMESTRAL, SEMESTRAL, ANUAL
     AAAA-MM-DD  -> fecha de expiración
     INSTANCEID  -> primeros 12 caracteres del UUID de la base de datos
                    de Odoo (sin guiones), identifica a ESTA instalación
@@ -20,11 +20,45 @@ source, como el resto de Odoo Community).
 import hmac
 import hashlib
 import logging
+import os
 from datetime import date, timedelta
 
 from odoo import api, fields, models
+from odoo.tools import config
 
 _logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# SAFEMODE y MASTER KEY — mecanismos de recovery para el desarrollador
+# ---------------------------------------------------------------------------
+# SAFEMODE: si existe el archivo SAFEMODE en la raíz del módulo, se saltea
+#            toda verificación de licencia. No requiere reiniciar Odoo.
+# MASTER KEY: si odoo.conf tiene license_lock_master_key=<valor>, se saltea
+#             toda verificación de licencia. Requiere reiniciar Odoo.
+#
+# La desinstalación del módulo también está protegida: solo se puede
+# desinstalar si hay licencia válida O algún bypass está activo.
+
+SAFEMODE_FILENAME = 'SAFEMODE'
+
+
+def _safemode_active():
+    module_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.exists(os.path.join(module_dir, SAFEMODE_FILENAME))
+
+
+def _master_key_valid():
+    return bool(config.get('license_lock_master_key'))
+
+
+def _is_bypassed():
+    if _safemode_active():
+        _logger.info("License check BYPASSED via SAFEMODE file")
+        return True
+    if _master_key_valid():
+        _logger.info("License check BYPASSED via master key in odoo.conf")
+        return True
+    return False
 
 # ---------------------------------------------------------------------------
 # CLAVE SECRETA
@@ -40,6 +74,7 @@ _logger = logging.getLogger(__name__)
 SECRET_KEY = b"58623619674d4124b2c8e8d434c180bc52bedc9df8f3e741490117a9f884af55"
 
 PLANES_DIAS = {
+    'DIARIO': 1,
     'MENSUAL': 30,
     'TRIMESTRAL': 90,
     'SEMESTRAL': 180,
@@ -125,6 +160,7 @@ class LicenseManager(models.Model):
         help='Envía este código al proveedor para que te genere la licencia.')
 
     plan = fields.Selection([
+        ('DIARIO', 'Diario (1 día)'),
         ('MENSUAL', 'Mensual (30 días)'),
         ('TRIMESTRAL', 'Trimestral (90 días)'),
         ('SEMESTRAL', 'Semestral (180 días)'),
