@@ -187,10 +187,26 @@ class LicenseManager(models.Model):
 
     @api.model
     def _get_singleton(self):
-        rec = self.search([], limit=1)
+        """Busca el registro con licencia cargada; si no hay, crea uno."""
+        rec = self.search([('license_key', '!=', False)], limit=1)
+        if not rec:
+            rec = self.search([], limit=1)
         if not rec:
             rec = self.create({})
         return rec
+
+    @api.model
+    def action_open_license(self):
+        """Abre la vista form del registro de licencia (para el menú)."""
+        rec = self._get_singleton()
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': self._name,
+            'res_id': rec.id,
+            'view_mode': 'form',
+            'target': 'current',
+            'name': 'Licencia',
+        }
 
     def action_apply_license(self):
         self.ensure_one()
