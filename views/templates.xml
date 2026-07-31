@@ -3,7 +3,7 @@
     <template id="license_page_template" name="Licencia">
         <t t-call="web.layout">
             <t t-set="head_website">True</t>
-            <div style="max-width:560px;margin:60px auto;font-family:sans-serif;">
+            <div style="max-width:620px;margin:60px auto;font-family:sans-serif;">
 
                 <!-- ===== ENCABEZADO ===== -->
                 <div style="text-align:center;margin-bottom:24px;">
@@ -16,21 +16,43 @@
                     </p>
                 </div>
 
+                <!-- ===== CÓDIGO DE LICENCIA (Bien grande) ===== -->
+                <t t-if="license_key">
+                    <div style="text-align:center;padding:20px;border-radius:12px;margin-bottom:16px;
+                                background:#fafafa;border:2px dashed #9e9e9e;">
+                        <div style="font-size:0.85em;color:#777;margin-bottom:8px;">
+                            Tu código de licencia
+                        </div>
+                        <div style="font-family:monospace;font-size:1.5em;font-weight:bold;color:#333;
+                                    word-break:break-all;line-height:1.3;">
+                            <t t-esc="license_key"/>
+                        </div>
+                    </div>
+                </t>
+                <t t-if="not license_key">
+                    <div style="text-align:center;padding:20px;border-radius:12px;margin-bottom:16px;
+                                background:#fafafa;border:2px dashed #9e9e9e;">
+                        <div style="font-size:1em;color:#777;">
+                            No hay ninguna licencia cargada todavía.
+                        </div>
+                    </div>
+                </t>
+
                 <!-- ===== DÍAS RESTANTES (Bien grande) ===== -->
                 <t t-if="plan and days_remaining is not False">
-                    <div t-attf-style="text-align:center;padding:20px;border-radius:12px;margin-bottom:20px;
+                    <div t-attf-style="text-align:center;padding:20px;border-radius:12px;margin-bottom:16px;
                                         background:{{ '#e8f5e9' if days_remaining > 0 else '#fff3e0' if days_remaining >= 0 else '#fbeaea' }};
                                         border:2px solid {{ '#4caf50' if days_remaining > 0 else '#ff9800' if days_remaining >= 0 else '#e53935' }};">
                         <t t-if="days_remaining > 0">
-                            <div style="font-size:3em;font-weight:bold;color:#2e7d32;line-height:1.1;">
+                            <div style="font-size:3.5em;font-weight:bold;color:#2e7d32;line-height:1.1;">
                                 <t t-esc="days_remaining"/>
                             </div>
-                            <div style="font-size:1.1em;color:#388e3c;margin-top:4px;">
+                            <div style="font-size:1.2em;color:#388e3c;margin-top:4px;">
                                 días restantes
                             </div>
                         </t>
                         <t t-if="days_remaining == 0">
-                            <div style="font-size:2em;font-weight:bold;color:#e65100;line-height:1.1;">
+                            <div style="font-size:2.5em;font-weight:bold;color:#e65100;line-height:1.1;">
                                 VENCE HOY
                             </div>
                             <div style="font-size:1em;color:#ef6c00;margin-top:4px;">
@@ -38,27 +60,29 @@
                             </div>
                         </t>
                         <t t-if="days_remaining &lt; 0">
-                            <div style="font-size:3em;font-weight:bold;color:#c62828;line-height:1.1;">
+                            <div style="font-size:3.5em;font-weight:bold;color:#c62828;line-height:1.1;">
                                 <t t-esc="0 - days_remaining"/>
                             </div>
-                            <div style="font-size:1.1em;color:#d32f2f;margin-top:4px;">
+                            <div style="font-size:1.2em;color:#d32f2f;margin-top:4px;">
                                 días de vencida
                             </div>
                         </t>
                     </div>
                 </t>
 
-                <!-- ===== INFO DE LA LICENCIA ===== -->
-                <div t-attf-style="padding:14px 16px;border-radius:8px;margin-bottom:20px;
-                                    background:{{ '#eafaf0' if not blocked else '#fbeaea' }};
-                                    border:1px solid {{ '#b7e4c7' if not blocked else '#e6b3b3' }};">
-                    <p t-if="plan" style="margin:0 0 4px;"><b>Plan:</b> <t t-esc="plan"/></p>
-                    <p t-if="expires_on" style="margin:0 0 4px;"><b>Vence:</b> <t t-esc="expires_on"/></p>
-                    <p t-if="error_message" style="margin:0;color:#555;font-size:0.9em;">
-                        <t t-esc="error_message"/>
+                <!-- ===== INFO DEL PLAN Y VENCIMIENTO ===== -->
+                <div t-if="plan or expires_on" style="text-align:center;padding:14px 16px;border-radius:8px;margin-bottom:20px;
+                                                       background:#f5f5f5;border:1px solid #ddd;">
+                    <p t-if="plan" style="margin:0 0 4px;">
+                        <span style="color:#777;">Tipo de plan:</span>
+                        <b style="font-size:1.3em;"><t t-esc="plan"/></b>
                     </p>
-                    <p t-if="not plan and not error_message" style="margin:0;color:#555;">
-                        No hay ninguna licencia cargada todavía.
+                    <p t-if="expires_on" style="margin:0;">
+                        <span style="color:#777;">Vence el:</span>
+                        <b style="font-size:1.2em;"><t t-esc="expires_on"/></b>
+                    </p>
+                    <p t-if="error_message" style="margin:8px 0 0;color:#c62828;font-size:0.95em;">
+                        <t t-esc="error_message"/>
                     </p>
                 </div>
 
