@@ -7,27 +7,52 @@
         <field name="arch" type="xml">
             <form string="Licencia">
                 <sheet>
+                    <!-- ===== BANNER DE ESTADO ===== -->
                     <div class="oe_title">
-                        <h1>Control de Licencia</h1>
+                        <h1>
+                            <field name="status" widget="badge"
+                                   decoration-success="status == 'valid'"
+                                   decoration-warning="status == 'unset'"
+                                   decoration-danger="status in ('expired','invalid','clock_tampered')"/>
+                        </h1>
                     </div>
+
+                    <!-- ===== DÍAS RESTANTES (grande) ===== -->
+                    <group t-if="status == 'valid'">
+                        <div style="text-align:center;padding:16px;border-radius:10px;background:#e8f5e9;border:2px solid #4caf50;margin-bottom:12px;width:100%;">
+                            <div style="font-size:3.2em;font-weight:bold;color:#2e7d32;line-height:1.1;">
+                                <field name="days_remaining" nolabel="1"/>
+                            </div>
+                            <div style="font-size:1.1em;color:#388e3c;">días restantes</div>
+                        </div>
+                    </group>
+                    <group t-if="status != 'valid'">
+                        <div style="text-align:center;padding:16px;border-radius:10px;background:#fbeaea;border:2px solid #e53935;margin-bottom:12px;width:100%;">
+                            <div style="font-size:1.3em;font-weight:bold;color:#c62828;">
+                                Licencia no activa
+                            </div>
+                        </div>
+                    </group>
+
                     <group>
-                        <field name="status" widget="badge"
-                               decoration-success="status == 'valid'"
-                               decoration-danger="status in ('expired','invalid','clock_tampered')"/>
-                        <field name="plan"/>
-                        <field name="expires_on"/>
-                        <field name="last_check"/>
-                        <field name="error_message"/>
+                        <group string="Plan">
+                            <field name="plan"/>
+                            <field name="expires_on"/>
+                            <field name="last_check"/>
+                            <field name="error_message"/>
+                        </group>
+                        <group string="Instalación">
+                            <field name="instance_uuid" nolabel="1"/>
+                            <p class="text-muted">
+                                Envía este código al proveedor por WhatsApp para que te
+                                genere la licencia de esta instalación específica.
+                            </p>
+                        </group>
                     </group>
-                    <group string="ID de esta instalación">
-                        <field name="instance_uuid" nolabel="1"/>
-                        <p class="text-muted">
-                            Envía este código al proveedor por WhatsApp para que te genere
-                            la licencia de esta instalación específica.
-                        </p>
-                    </group>
+
                     <group string="Código de licencia">
-                        <field name="license_key" nolabel="1" placeholder="Pega aquí el código que te dio el proveedor..."/>
+                        <field name="license_key" nolabel="1"
+                               placeholder="Pega aquí el código que te dio el proveedor..."/>
                     </group>
                     <footer>
                         <button name="action_apply_license" type="object"

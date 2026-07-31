@@ -180,6 +180,15 @@ class LicenseManager(models.Model):
     last_seen_date = fields.Date(string='Última fecha confiable vista', readonly=True)
     error_message = fields.Char(string='Detalle', readonly=True)
 
+    days_remaining = fields.Integer(
+        string='Días restantes', compute='_compute_days_remaining', readonly=True)
+
+    @api.depends('expires_on')
+    def _compute_days_remaining(self):
+        today = fields.Date.context_today(self)
+        for rec in self:
+            rec.days_remaining = (rec.expires_on - today).days if rec.expires_on else 0
+
     def _compute_instance_uuid(self):
         for rec in self:
             full = self.env['ir.config_parameter'].sudo().get_param('database.uuid', '')
