@@ -49,6 +49,14 @@ _odoo.exceptions = MagicMock(name="odoo.exceptions")
 _odoo.http = MagicMock(name="odoo.http")
 _odoo.models = MagicMock(name="odoo.models")
 _odoo.models.Model = _FakeModel
+# ``license_manager.py`` does ``from odoo.tools import config`` (master key
+# support). The submodule must be registered too — a bare MagicMock parent
+# is NOT a package, so the import system cannot find ``odoo.tools`` without
+# it. ``config.get(...)`` must return the default so master-key bypass
+# stays OFF inside tests.
+_odoo.tools = MagicMock(name="odoo.tools")
+_odoo.tools.config = MagicMock(name="odoo.tools.config")
+_odoo.tools.config.get = lambda key, default=None: default
 
 sys.modules["odoo"] = _odoo
 sys.modules["odoo.api"] = _odoo.api
@@ -56,6 +64,7 @@ sys.modules["odoo.fields"] = _odoo.fields
 sys.modules["odoo.exceptions"] = _odoo.exceptions
 sys.modules["odoo.http"] = _odoo.http
 sys.modules["odoo.models"] = _odoo.models
+sys.modules["odoo.tools"] = _odoo.tools
 # ──────────────────────────────────────────────────────────────────────────────
 
 # NOTE: No ``from license_lock.models…`` at module level — everything is lazy.

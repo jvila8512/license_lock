@@ -193,3 +193,91 @@ class TestParseAndVerify:
             result, err = _parse_and_verify(variant, instance_id)
             assert err is None
             assert result["plan"] == "MENSUAL"
+
+
+# ── _parse_and_verify — DEV hardcoded format ────────────────────────────────
+
+
+class TestParseAndVerifyDevFormat:
+    """TC-DEVFMT-01 through TC-DEVFMT-05: ADMIN-NEGOCIO-<AAAA-MM-DD>-DEV-DEV."""
+
+    DEV_CODE = "ADMIN-NEGOCIO-2027-09-24-DEV-DEV"
+
+    # -- valid format with allow_dev=True ------------------------------------
+
+    def test_valid_dev_format_with_flag(self, instance_id):
+        """TC-DEVFMT-01: DEV format accepted when allow_dev=True."""
+        _, _, _, _parse_and_verify = _import()
+
+        result, err = _parse_and_verify(self.DEV_CODE, instance_id, allow_dev=True)
+        assert err is None
+        assert result["plan"] == "ADMIN-NEGOCIO"
+        assert result["fecha_expiracion"] == date(2027, 9, 24)
+
+    # -- rejected when allow_dev=False ---------------------------------------
+
+    def test_dev_format_without_flag(self, instance_id):
+        """TC-DEVFMT-02: DEV format rejected when allow_dev=False (gate)."""
+        _, _, _, _parse_and_verify = _import()
+
+        result, err = _parse_and_verify(self.DEV_CODE, instance_id, allow_dev=False)
+        assert result is None
+        assert err == "Código DEV deshabilitado (license_lock.allow_dev=False)."
+
+    # -- invalid date ---------------------------------------------------------
+
+    @pytest.mark.parametrize(
+        "bad_code",
+        [
+            "ADMIN-NEGOCIO-2026-13-40-DEV-DEV",  # month=13, day=40
+            "ADMIN-NEGOCIO-2026-00-10-DEV-DEV",  # month=0
+            "ADMIN-NEGOCIO-2026-02-30-DEV-DEV",  # Feb 30 does not exist
+            "ADMIN-NEGOCIO-2026-12-00-DEV-DEV",  # day=0
+        ],
+    )
+    def test_dev_format_invalid_date(self, instance_id, bad_code):
+        """TC-DEVFMT-03: unparseable date in DEV format → error."""
+        _, _, _, _parse_and_verify = _import()
+
+        result, err = _parse_and_verify(bad_code, instance_id, allow_dev=True)
+        assert result is None
+        assert err == "Fecha inválida en el código."
+
+    # -- case insensitivity ---------------------------------------------------
+
+    @pytest.mark.parametrize(
+        "variant",
+        [
+            "admin-negocio-2027-09-24-dev-dev",        # fully lowercase
+            "Admin-Negocio-2027-09-24-Dev-Dev",        # mixed case
+            "  ADMIN-NEGOCIO-2027-09-24-DEV-DEV  ",    # surrounding whitespace
+        ],
+    )
+    def test_dev_format_case_insensitivity(self, instance_id, variant):
+        """TC-DEVFMT-04: input is uppercased/stripped before matching."""
+        _, _, _, _parse_and_verify = _import()
+
+        result, err = _parse_and_verify(variant, instance_id, allow_dev=True)
+        assert err is None
+        assert result["plan"] == "ADMIN-NEGOCIO"
+        assert result["fecha_expiracion"] == date(2027, 9, 24)
+
+    # -- near-miss formats fall through to the normal format check ------------
+
+    @pytest.mark.parametrize(
+        "near_miss",
+        [
+            "ADMIN-NEGOCIO-2027-9-24-DEV-DEV",       # single-digit month
+            "ADMIN-NEGOCIO-2027-09-2-DEV-DEV",       # single-digit day
+            "ADMIN-NEGOCIO-2027-09-24-DEV",          # missing suffix
+            "ADMIN-NEGOCIO-2027-09-24-DEV-DEV-EXTRA",  # extra segment
+            "PLAN-NEGOCIO-2027-09-24-DEV-DEV",       # wrong plan prefix
+        ],
+    )
+    def test_dev_format_near_miss(self, instance_id, near_miss):
+        """TC-DEVFMT-05: near-misses don't match the DEV format regex."""
+        _, _, _, _parse_and_verify = _import()
+
+        result, err = _parse_and_verify(near_miss, instance_id, allow_dev=True)
+        assert result is None
+        assert err == "Formato de código inválido."

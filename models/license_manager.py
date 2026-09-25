@@ -21,6 +21,7 @@ import hmac
 import hashlib
 import logging
 import os
+import re
 from datetime import date, timedelta
 
 from odoo import api, fields, models
@@ -90,6 +91,18 @@ DEV_CODES = [
     "ODOO-MENSUAL-2099-12-31-DEVDEVDEVDEV-DEVDEVDE",
 ]
 
+# Formato DEV "hardcodeable": sin firma HMAC ni atadura a instancia,
+# útil para desarrollo local. Misma condición de seguridad que DEV_CODES:
+# SOLO se acepta si 'license_lock.allow_dev' == 'True' en los parámetros
+# de sistema (para no dejar que cualquiera se auto-emita una licencia
+# cuando el módulo está entregado a un cliente real).
+#
+# Formato: ADMIN-NEGOCIO-<AAAA-MM-DD>-DEV-DEV
+#     ADMIN-NEGOCIO -> identificador de plan
+#     AAAA-MM-DD    -> fecha de expiración
+#     DEV-DEV       -> sufijo estático que marca la licencia como DEV
+DEV_FORMAT_RE = re.compile(r'^ADMIN-NEGOCIO-(\d{4})-(\d{2})-(\d{2})-DEV-DEV$')
+
 # Tolerancia para el detector de retroceso de reloj. Si el reloj del
 # servidor aparece más atrás que la última fecha vista menos este
 # margen, se considera manipulación.
@@ -123,6 +136,18 @@ def _parse_and_verify(code, instance_id, allow_dev=False):
     if allow_dev and code in DEV_CODES:
         # Solo para pruebas: se acepta sin verificar hash ni instancia.
         return {'plan': code.split('-')[1], 'fecha_expiracion': date(2099, 12, 31)}, None
+
+    # --- Formato DEV hardcodeable (mismo gate que DEV_CODES) ---------------
+    dev_match = DEV_FORMAT_RE.match(code)
+    if dev_match:
+        if not allow_dev:
+            return None, "Código DEV deshabilitado (license_lock.allow_dev=False)."
+        y, m, d = dev_match.groups()
+        try:
+            fecha = date(int(y), int(m), int(d))
+        except ValueError:
+            return None, "Fecha inválida en el código."
+        return {'plan': 'ADMIN-NEGOCIO', 'fecha_expiracion': fecha}, None
 
     parts = code.split('-')
     if len(parts) != 7 or parts[0] != 'ODOO':
@@ -165,6 +190,7 @@ class LicenseManager(models.Model):
         ('TRIMESTRAL', 'Trimestral (90 días)'),
         ('SEMESTRAL', 'Semestral (180 días)'),
         ('ANUAL', 'Anual (365 días)'),
+        ('ADMIN-NEGOCIO', 'Admin Negocio (DEV)'),
     ], readonly=True)
     expires_on = fields.Date(string='Vence el', readonly=True)
 
