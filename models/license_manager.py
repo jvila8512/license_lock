@@ -179,7 +179,7 @@ class LicenseManager(models.Model):
     _description = 'Gestor de Licencia Mensual (offline)'
     _rec_name = 'plan'
 
-    license_key = fields.Text(string='Código de licencia')
+    license_key = fields.Char(string='Código de licencia')
     instance_uuid = fields.Char(
         string='ID de esta instalación', compute='_compute_instance_uuid', store=False,
         help='Envía este código al proveedor para que te genere la licencia.')
