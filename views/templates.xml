@@ -117,9 +117,17 @@
                     </button>
                 </form>
 
-                <!-- ===== BOTÓN PARA VOLVER A ODOO (solo si no está bloqueado) ===== -->
+                <!-- ===== BOTÓN PARA IR AL ESCRITORIO (página de estado) ===== -->
                 <div t-if="not blocked" style="text-align:center;margin-top:26px;">
-                    <a href="/web" style="text-decoration:none;color:#2e7d32;font-weight:bold;">
+                    <a t-if="status == 'valid'" href="/web"
+                       style="display:inline-block;text-decoration:none;padding:13px 40px;
+                              background:#2e7d32;color:#fff;border-radius:8px;
+                              font-size:1.2em;font-weight:bold;
+                              box-shadow:0 2px 6px rgba(46,125,50,0.35);">
+                        Ir al escritorio &#8594;
+                    </a>
+                    <a t-if="status != 'valid'" href="/web"
+                       style="text-decoration:none;color:#2e7d32;font-weight:bold;">
                         Continuar a Odoo &#8594;
                     </a>
                 </div>
