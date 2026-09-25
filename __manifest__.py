@@ -3,6 +3,7 @@
     'name': 'License Lock - Control de Licencia Mensual',
     'version': '17.0.1.0.0',
     'category': 'Tools',
+    'application': True,
     'summary': 'Bloquea el sistema si la licencia mensual no está activa',
     'description': """
 Módulo de control de licencia mensual/trimestral/semestral/anual para
