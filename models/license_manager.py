@@ -328,4 +328,18 @@ class LicenseUpdateWizard(models.TransientModel):
         rec = self.env['license.manager']._get_singleton()
         rec.write({'license_key': self.license_key})
         rec._revalidate()
-        return self.env['license.manager'].action_open_license()
+        open_form = self.env['license.manager'].action_open_license()
+        if rec.status == 'valid':
+            return open_form
+        # Rechazado: toast rojo persistente + reabre el form (muestra INVÁLIDA)
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Código de licencia RECHAZADO',
+                'message': rec.error_message or 'El código no es válido.',
+                'type': 'danger',
+                'sticky': True,
+                'next': open_form,
+            },
+        }

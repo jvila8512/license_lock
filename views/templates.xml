@@ -16,6 +16,20 @@
                     </p>
                 </div>
 
+                <!-- ===== ALERTA DE RECHAZO (bien visible) ===== -->
+                <div t-if="status not in ('valid', 'unset')"
+                     style="text-align:center;padding:16px 14px;border-radius:10px;margin-bottom:16px;
+                            background:#c62828;border:2px solid #8e0000;">
+                    <div style="font-size:1.15em;font-weight:bold;color:#ffffff;margin-bottom:6px;">
+                        <t t-if="status == 'invalid'">CÓDIGO DE LICENCIA RECHAZADO</t>
+                        <t t-if="status == 'clock_tampered'">RELOJ DEL SERVIDOR MODIFICADO</t>
+                        <t t-if="status == 'expired'">LICENCIA VENCIDA</t>
+                    </div>
+                    <div t-if="error_message" style="color:#ffcdd2;font-size:0.95em;">
+                        <t t-esc="error_message"/>
+                    </div>
+                </div>
+
                 <!-- ===== CÓDIGO DE LICENCIA (Bien grande) ===== -->
                 <t t-if="license_key">
                     <div style="text-align:center;padding:20px;border-radius:12px;margin-bottom:16px;
@@ -80,9 +94,6 @@
                     <p t-if="expires_on" style="margin:0;">
                         <span style="color:#777;">Vence el:</span>
                         <b style="font-size:1.2em;"><t t-esc="expires_on"/></b>
-                    </p>
-                    <p t-if="error_message" style="margin:8px 0 0;color:#c62828;font-size:0.95em;">
-                        <t t-esc="error_message"/>
                     </p>
                 </div>
 
