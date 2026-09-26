@@ -49,6 +49,9 @@ _odoo.exceptions = MagicMock(name="odoo.exceptions")
 _odoo.http = MagicMock(name="odoo.http")
 _odoo.models = MagicMock(name="odoo.models")
 _odoo.models.Model = _FakeModel
+# license_manager.py defines both models.Model and models.TransientModel
+# subclasses (the license update wizard) — both need the real base class.
+_odoo.models.TransientModel = _FakeModel
 # ``license_manager.py`` does ``from odoo.tools import config`` (master key
 # support). The submodule must be registered too — a bare MagicMock parent
 # is NOT a package, so the import system cannot find ``odoo.tools`` without

@@ -196,6 +196,101 @@ DEV mueren y solo acepta códigos firmados.
 
 ---
 
+## 7. Generador en Flutter (Dart)
+
+Código y pasos para que una app Flutter (PosJVL u otra) genere las licencias
+de este módulo. Es la misma especificación que `generar-licencias-odoo.md`,
+consolidada acá para tener un solo documento de referencia.
+
+### 7.1 Dependencia
+
+```yaml
+# pubspec.yaml
+dependencies:
+  crypto: ^3.0.0
+```
+
+### 7.2 Código del generador
+
+```dart
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
+
+/// MISMA clave que SECRET_KEY en models/license_manager.py (64 hex).
+/// NUNCA reutilices la clave de PosJVL.
+const String _odooSecretKey = 'CLAVE_64_HEX_IGUAL_A_license_manager';
+
+enum PlanOdoo {
+  diario('DIARIO', 1),
+  mensual('MENSUAL', 30),
+  trimestral('TRIMESTRAL', 90),
+  semestral('SEMESTRAL', 180),
+  anual('ANUAL', 365);
+
+  final String nombre;
+  final int duracionDias;
+  const PlanOdoo(this.nombre, this.duracionDias);
+}
+
+/// Formato producción: ODOO-<PLAN>-<AAAA-MM-DD>-<INSTANCEID>-<HASH8>
+String generarLicenciaOdoo({
+  required PlanOdoo plan,
+  required DateTime fechaExpiracion,
+  required String instanceId,
+}) {
+  final fecha = '${fechaExpiracion.year.toString().padLeft(4, '0')}-'
+      '${fechaExpiracion.month.toString().padLeft(2, '0')}-'
+      '${fechaExpiracion.day.toString().padLeft(2, '0')}';
+
+  // ⚠️ El payload INCLUYE el prefijo 'ODOO-' — es el error más común
+  // olvidarlo: el hash nunca coincidiría.
+  final payload = 'ODOO-${plan.nombre}-$fecha-$instanceId';
+
+  final hash = Hmac(sha256, utf8.encode(_odooSecretKey))
+      .convert(utf8.encode(payload))
+      .toString()
+      .substring(0, 8)
+      .toUpperCase();
+
+  return '$payload-$hash';
+}
+
+/// Formato DEV hardcodeable: ADMIN-NEGOCIO-<AAAA-MM-DD>-DEV-DEV
+/// Solo funciona si el destino tiene license_lock.allow_dev=True.
+String generarLicenciaDev({required DateTime fechaExpiracion}) {
+  final fecha = '${fechaExpiracion.year.toString().padLeft(4, '0')}-'
+      '${fechaExpiracion.month.toString().padLeft(2, '0')}-'
+      '${fechaExpiracion.day.toString().padLeft(2, '0')}';
+  return 'ADMIN-NEGOCIO-$fecha-DEV-DEV';
+}
+
+/// Instance ID: 12 chars HEX (lo muestra la pantalla de licencia de Odoo).
+bool instanceIdValido(String id) =>
+    RegExp(r'^[A-F0-9]{12}$').hasMatch(id.toUpperCase());
+```
+
+### 7.3 Pasos en la app
+
+1. **Inputs del usuario:** instance ID (pegado por el cliente desde la
+   pantalla de licencia), plan (dropdown con `PlanOdoo`), fecha de
+   vencimiento (date picker).
+2. **Validar** el instance ID con `instanceIdValido()` antes de generar.
+3. **Generar** con `generarLicenciaOdoo(...)`.
+4. **Enviar** el código al cliente (WhatsApp/copia al portapapeles).
+5. El cliente lo pega en Odoo (`/license_lock` o menú Licencia →
+   Actualizar licencia) y pasa a `valid`.
+
+### 7.4 Reglas críticas
+
+- [ ] La clave del generador es **idéntica** a `SECRET_KEY` de `license_manager.py`
+- [ ] Clave **distinta** a la de PosJVL
+- [ ] Payload **con** el prefijo `ODOO-`
+- [ ] Fecha con `padLeft(2/4, '0')` → `2027-09-04`, nunca `2027-9-4`
+- [ ] Hash: 8 caracteres HEX en mayúsculas
+- [ ] Formato DEV solo para desarrollo (requiere `allow_dev=True` en destino)
+
+---
+
 ## Checklist antes de emitir una licencia
 
 - [ ] Instancia: 12 caracteres, obtenidos de la pantalla de licencia del cliente

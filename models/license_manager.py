@@ -307,3 +307,23 @@ class LicenseManager(models.Model):
     def is_blocked(self):
         rec = self._get_singleton()
         return rec.status not in ('valid',)
+
+
+class LicenseUpdateWizard(models.TransientModel):
+    """Wizard para actualizar la licencia desde el backend.
+
+    El código se muestra readonly en el form principal; este wizard es
+    el único punto de entrada para pegar un código nuevo. Al aplicarlo,
+    revalida y reabre el form de licencia con los datos frescos.
+    """
+    _name = 'license.update.wizard'
+    _description = 'Actualizar licencia'
+
+    license_key = fields.Char(string='Nuevo código de licencia', required=True)
+
+    def action_apply(self):
+        self.ensure_one()
+        rec = self.env['license.manager']._get_singleton()
+        rec.write({'license_key': self.license_key})
+        rec._revalidate()
+        return self.env['license.manager'].action_open_license()

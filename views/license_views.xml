@@ -1,6 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
 
+    <!-- ===== WIZARD: actualizar licencia (definido ANTES del form por el ref %( )d) ===== -->
+    <record id="view_license_update_wizard_form" model="ir.ui.view">
+        <field name="name">license.update.wizard.form</field>
+        <field name="model">license.update.wizard</field>
+        <field name="arch" type="xml">
+            <form string="Actualizar licencia">
+                <group>
+                    <field name="license_key" nolabel="1"
+                           placeholder="ODOO-ANUAL-2027-09-24-ABC123DEF456-XXXXXXXX"/>
+                </group>
+                <footer>
+                    <button name="action_apply" string="Aplicar licencia" type="object"
+                            class="btn-primary" data-hotkey="q"/>
+                    <button string="Cancelar" class="btn-secondary" special="cancel" data-hotkey="x"/>
+                </footer>
+            </form>
+        </field>
+    </record>
+
+    <record id="action_license_update_wizard" model="ir.actions.act_window">
+        <field name="name">Actualizar licencia</field>
+        <field name="res_model">license.update.wizard</field>
+        <field name="view_mode">form</field>
+        <field name="target">new</field>
+    </record>
+
+    <!-- ===== FORM PRINCIPAL DE LICENCIA ===== -->
     <record id="view_license_manager_form" model="ir.ui.view">
         <field name="name">license.manager.form</field>
         <field name="model">license.manager</field>
@@ -52,13 +79,21 @@
                         </group>
                     </group>
 
-                    <group string="Código de licencia">
-                        <field name="license_key" nolabel="1"
-                               placeholder="Pega aquí el código que te dio el proveedor..."/>
-                    </group>
+                    <!-- ===== CÓDIGO (readonly, ancho completo, se ve ENTERO) ===== -->
+                    <div style="margin-bottom:16px;">
+                        <div style="font-size:0.9em;color:#666;margin-bottom:4px;">
+                            Código de licencia
+                        </div>
+                        <div style="font-family:monospace;font-size:1.1em;background:#f9f9f9;
+                                    border:1px solid #ddd;border-radius:6px;padding:10px 12px;
+                                    word-break:break-all;line-height:1.4;min-height:20px;">
+                            <field name="license_key" nolabel="1" readonly="1"/>
+                        </div>
+                    </div>
+
                     <footer>
-                        <button name="action_apply_license" type="object"
-                                string="Aplicar / Revalidar" class="btn-primary"/>
+                        <button name="%(action_license_update_wizard)d" type="action"
+                                string="Actualizar licencia" class="btn-primary"/>
                     </footer>
                 </sheet>
             </form>
