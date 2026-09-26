@@ -111,6 +111,7 @@ La implementación equivalente en **Dart (PosJVL)** está en `generar-licencias-
 | Plan | Duración | Constante |
 |------|----------|-----------|
 | `DIARIO` | 1 día | `PLANES_DIAS['DIARIO'] = 1` |
+| `TRIAL` | 15 días (prueba gratis) | `PLANES_DIAS['TRIAL'] = 15` |
 | `MENSUAL` | 30 días | `PLANES_DIAS['MENSUAL'] = 30` |
 | `TRIMESTRAL` | 90 días | `PLANES_DIAS['TRIMESTRAL'] = 90` |
 | `SEMESTRAL` | 180 días | `PLANES_DIAS['SEMESTRAL'] = 180` |

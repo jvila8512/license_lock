@@ -76,6 +76,7 @@ SECRET_KEY = b"58623619674d4124b2c8e8d434c180bc52bedc9df8f3e741490117a9f884af55"
 
 PLANES_DIAS = {
     'DIARIO': 1,
+    'TRIAL': 15,
     'MENSUAL': 30,
     'TRIMESTRAL': 90,
     'SEMESTRAL': 180,
@@ -186,6 +187,7 @@ class LicenseManager(models.Model):
 
     plan = fields.Selection([
         ('DIARIO', 'Diario (1 día)'),
+        ('TRIAL', 'Prueba (15 días)'),
         ('MENSUAL', 'Mensual (30 días)'),
         ('TRIMESTRAL', 'Trimestral (90 días)'),
         ('SEMESTRAL', 'Semestral (180 días)'),
